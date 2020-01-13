@@ -5,3 +5,97 @@ var requestUrl = horoscopeJson.requestUrl;
 console.log("horoscopeJson:");
 console.log(horoscopeJson);
 console.log("requestUrl= " + requestUrl);
+
+const gokuDiv = document.querySelector('#gokuDiv');
+const targetWindowNameSelf = "_self";
+const targetWindowNameBlank = "_blank";
+const gokuNoKimochiReservationUrl = "https://goku-nokimochi.com/reservation.html";
+
+function moveToLocation(url,name){
+	window.open(url, name);
+	}
+
+function padZero(length, fromInteger) {
+	return ("" + fromInteger).padStart(length, "0");
+	}
+
+function fetchGoku() {
+	fetch(
+			"https://s3-ap-northeast-1.amazonaws.com/s3.goku-nokimochi.com/json/calendar/calendar.json",
+			{"method":"GET","cache":"no-store"}
+			).then((response) => {
+				{{! response.status = 200~299, response.ok = true}}
+				if(response.ok){
+					console.log(response.status);
+					return response.json();
+					}else{
+						console.log(response.status);
+						throw new Error();
+						}
+				}
+			)
+			.then((resultJson) => {
+				console.log(resultJson);
+				{{! parse result json and append html}}
+				gokuDiv.innerHTML = parseFetchGoku(resultJson);
+				}
+			);
+	}
+{{! parse result json data to html}}
+function parseFetchGoku (resultJson){
+	let resultHtml = "";
+	if (resultJson.length == 0){
+		console.log('no vacant day');
+		return resultHtml;
+		}
+	resultHtml += '<p>vacant day at goku</p>';
+	{{! vacant case}}
+	resultHtml += '<p>';
+	resultHtml += 'total counts: ' + resultJson.length;
+	resultHtml += '</p>';
+	resultHtml += '<div>';
+	resultHtml += '<table>';
+	resultHtml += '<tr>';
+	resultHtml += '<th>';
+	resultHtml += 'case';
+	resultHtml += '</th>';
+	resultHtml += '<th>';
+	resultHtml += 'date';
+	resultHtml += '</th>';
+	resultHtml += '<th>';
+	resultHtml += 'time';
+	resultHtml += '</th>';
+	resultHtml += '<th>';
+	resultHtml += 'shop';
+	resultHtml += '</th>';
+	resultHtml += '<th>';
+	resultHtml += 'status';
+	resultHtml += '</th>';
+	resultHtml += '</tr>';
+	{{! roop number of vacant case}}
+	for(var i = 0; i < resultJson.length; ++i){
+		resultHtml += '<tr>';
+		resultHtml += '<td>';
+		resultHtml += i + 1;
+		resultHtml += '</td>';
+		resultHtml += '<td>';
+		resultHtml += resultJson[i].date;
+		resultHtml += '</td>';
+		resultHtml += '<td>';
+		resultHtml += resultJson[i].hour_min;
+		resultHtml += '</td>';
+		resultHtml += '<td>';
+		resultHtml += resultJson[i].shop_name;
+		resultHtml += '</td>';
+		resultHtml += '<td>';
+		resultHtml += resultJson[i].status;
+		resultHtml += '</td>';
+		resultHtml += '</tr>';
+		}
+	resultHtml += '</table>';
+	resultHtml += '</div>';
+	resultHtml += '<button onclick=moveToLocation(gokuNoKimochiReservationUrl,targetWindowNameBlank)>';
+	resultHtml += 'goku no kimochi reservation page'
+	resultHtml += '</button>';
+	return resultHtml;
+	}
